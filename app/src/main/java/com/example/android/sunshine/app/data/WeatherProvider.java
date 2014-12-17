@@ -264,7 +264,7 @@ public class WeatherProvider extends ContentProvider {
 
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        int _Finalcount;
+        int rowsDeleted;
 
 
         switch (match) {
@@ -272,7 +272,7 @@ public class WeatherProvider extends ContentProvider {
                int _count = db.delete(WeatherContract.WeatherEntry.TABLE_NAME,selection,selectionArgs);
 
                 if ( _count > 0 )
-                    _Finalcount = _count;
+                    rowsDeleted = _count;
                 else
                     throw new android.database.SQLException("Failed to delete " + uri);
                 break;
@@ -281,7 +281,7 @@ public class WeatherProvider extends ContentProvider {
             case LOCATION: {
                 int _count = db.delete(WeatherContract.LocationEntry.TABLE_NAME,selection,selectionArgs);
                 if ( _count > 0 )
-                    _Finalcount =  _count;
+                    rowsDeleted =  _count;
                 else
                     throw new android.database.SQLException("Failed to delete " + uri);
 
@@ -290,14 +290,46 @@ public class WeatherProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
+        if (selection == null || rowsDeleted != 0)
         getContext().getContentResolver().notifyChange(uri,null);
-        return  _Finalcount;
+        return  rowsDeleted;
 
 
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        int rowsUpdated;
+
+
+        switch (match) {
+            case WEATHER: {
+
+                int _count = db.update(WeatherContract.WeatherEntry.TABLE_NAME,values,selection,selectionArgs);
+
+                if ( _count > 0 )
+                    rowsUpdated = _count;
+                else
+                    throw new android.database.SQLException("Failed to delete " + uri);
+                break;
+
+            }
+            case LOCATION: {
+                int _count = db.update(WeatherContract.LocationEntry.TABLE_NAME,values,selection,selectionArgs);
+                if ( _count > 0 )
+                    rowsUpdated =  _count;
+                else
+                    throw new android.database.SQLException("Failed to update " + uri);
+
+                break;
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        if (rowsUpdated != 0)
+        getContext().getContentResolver().notifyChange(uri,null);
+        return  rowsUpdated;
     }
 }
