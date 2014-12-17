@@ -261,7 +261,39 @@ public class WeatherProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        int _Finalcount;
+
+
+        switch (match) {
+            case WEATHER: {
+               int _count = db.delete(WeatherContract.WeatherEntry.TABLE_NAME,selection,selectionArgs);
+
+                if ( _count > 0 )
+                    _Finalcount = _count;
+                else
+                    throw new android.database.SQLException("Failed to delete " + uri);
+                break;
+
+            }
+            case LOCATION: {
+                int _count = db.delete(WeatherContract.LocationEntry.TABLE_NAME,selection,selectionArgs);
+                if ( _count > 0 )
+                    _Finalcount =  _count;
+                else
+                    throw new android.database.SQLException("Failed to delete " + uri);
+
+                break;
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri,null);
+        return  _Finalcount;
+
+
     }
 
     @Override
