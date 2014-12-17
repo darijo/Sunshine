@@ -1,4 +1,4 @@
-package com.example.android.sunshine.app;/*
+/*
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@ package com.example.android.sunshine.app;/*
  * limitations under the License.
  */
 
-
+package com.example.android.sunshine.app;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -28,12 +28,13 @@ import com.example.android.sunshine.app.data.WeatherDbHelper;
 import java.util.Map;
 import java.util.Set;
 
-public class TestDbClass extends AndroidTestCase {
+public class TestDb extends AndroidTestCase {
 
-    public static final String LOG_TAG = TestDbClass.class.getSimpleName();
+    public static final String LOG_TAG = TestDb.class.getSimpleName();
+    static final String TEST_LOCATION = "99705";
+    static final String TEST_DATE = "20141205";
 
     public void testCreateDb() throws Throwable {
-
         mContext.deleteDatabase(WeatherDbHelper.DATABASE_NAME);
         SQLiteDatabase db = new WeatherDbHelper(
                 this.mContext).getWritableDatabase();
@@ -95,10 +96,10 @@ public class TestDbClass extends AndroidTestCase {
         dbHelper.close();
     }
 
-    public static ContentValues createWeatherValues(long locationRowId) {
+    static ContentValues createWeatherValues(long locationRowId) {
         ContentValues weatherValues = new ContentValues();
         weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationRowId);
-        weatherValues.put(WeatherEntry.COLUMN_DATETEXT, "20141205");
+        weatherValues.put(WeatherEntry.COLUMN_DATETEXT, TEST_DATE);
         weatherValues.put(WeatherEntry.COLUMN_DEGREES, 1.1);
         weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, 1.2);
         weatherValues.put(WeatherEntry.COLUMN_PRESSURE, 1.3);
@@ -111,10 +112,10 @@ public class TestDbClass extends AndroidTestCase {
         return weatherValues;
     }
 
-    public static ContentValues createNorthPoleLocationValues() {
+    static ContentValues createNorthPoleLocationValues() {
         // Create a new map of values, where column names are the keys
         ContentValues testValues = new ContentValues();
-        testValues.put(LocationEntry.COLUMN_LOCATION_SETTING, "99705");
+        testValues.put(LocationEntry.COLUMN_LOCATION_SETTING, TEST_LOCATION);
         testValues.put(LocationEntry.COLUMN_CITY_NAME, "North Pole");
         testValues.put(LocationEntry.COLUMN_COORD_LAT, 64.7488);
         testValues.put(LocationEntry.COLUMN_COORD_LONG, -147.353);
@@ -122,7 +123,7 @@ public class TestDbClass extends AndroidTestCase {
         return testValues;
     }
 
-    public static void validateCursor(Cursor valueCursor, ContentValues expectedValues) {
+    static void validateCursor(Cursor valueCursor, ContentValues expectedValues) {
 
         assertTrue(valueCursor.moveToFirst());
 
