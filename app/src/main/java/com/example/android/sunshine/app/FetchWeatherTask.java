@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 
@@ -26,60 +25,46 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Vector;
 
 /**
  * Created by lab-2-36 on 12/18/14.
  */
-public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
+public class FetchWeatherTask extends AsyncTask<String,Void,Void> {
 
 
     private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
 
-    private ArrayAdapter<String> mForecastAdapter;
+
     private final Context mContext;
 
 
     private boolean DEBUG = false;
 
-    public FetchWeatherTask(Context context, ArrayAdapter<String> forecastAdapter) {
+    public FetchWeatherTask(Context context) {
         mContext = context;
-        mForecastAdapter = forecastAdapter;
-    }
-
-    @Override
-    protected void onPostExecute(String[] strings) {
-
-        if (strings != null) {
-
-            List<String> weatherList = new ArrayList<String>(Arrays.asList(strings));
-            mForecastAdapter.clear();
-            mForecastAdapter.addAll(weatherList);
-        }
-
 
     }
 
-    @Override
-    protected String[] doInBackground(String... params) {
 
-        if (params.length == 0)
+
+    @Override
+    protected Void doInBackground(String... params) {
+
+        // If there's no zip code, there's nothing to look up.  Verify size of params.
+        if (params.length == 0) {
             return null;
+        }
+        String locationQuery = params[0];
+
         // These two need to be declared outside the try/catch
-// so that they can be closed in the finally block.
+        // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
-
-
-        String locationQuery = params[0];
-// Will contain the raw JSON response as a string.
-
+        // Will contain the raw JSON response as a string.
         String forecastJsonStr = null;
 
         String format = "json";
@@ -88,25 +73,23 @@ public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
 
         try {
             // Construct the URL for the OpenWeatherMap query
-            // Possible parameters are available at OWM's forecast API page, at
+            // Possible parameters are avaiable at OWM's forecast API page, at
             // http://openweathermap.org/API#forecast
-            //URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
-            final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
-
+            final String FORECAST_BASE_URL =
+                    "http://api.openweathermap.org/data/2.5/forecast/daily?";
             final String QUERY_PARAM = "q";
             final String FORMAT_PARAM = "mode";
             final String UNITS_PARAM = "units";
             final String DAYS_PARAM = "cnt";
 
-            Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon().appendQueryParameter(QUERY_PARAM,params[0])
-                    .appendQueryParameter(FORMAT_PARAM,format)
-                    .appendQueryParameter(UNITS_PARAM,units)
-                    .appendQueryParameter(DAYS_PARAM,Integer.toString(numDays))
+            Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+                    .appendQueryParameter(QUERY_PARAM, params[0])
+                    .appendQueryParameter(FORMAT_PARAM, format)
+                    .appendQueryParameter(UNITS_PARAM, units)
+                    .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                     .build();
 
             URL url = new URL(builtUri.toString());
-
-            Log.v(LOG_TAG, "Built url: " + builtUri.toString());
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -118,7 +101,7 @@ public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                return  null;
+                return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -132,15 +115,15 @@ public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                return  null;
+                return null;
             }
             forecastJsonStr = buffer.toString();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
-            // If the code didn't successfully get the weather data, there's no point in attempting
+            // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
             return null;
-        } finally{
+        } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
@@ -148,17 +131,18 @@ public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
                 try {
                     reader.close();
                 } catch (final IOException e) {
-                    Log.e("PlaceholderFragment", "Error closing stream", e);
+                    Log.e(LOG_TAG, "Error closing stream", e);
                 }
             }
         }
 
         try {
-            return getWeatherDataFromJson(forecastJsonStr,numDays,locationQuery);
+            getWeatherDataFromJson(forecastJsonStr, numDays, locationQuery);
         } catch (JSONException e) {
-            Log.e(LOG_TAG,e.getMessage(),e);
+            Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
+        // This will only happen if there was an error getting or parsing the forecast.
         return null;
     }
 
@@ -377,7 +361,7 @@ public class FetchWeatherTask extends AsyncTask<String,Void,String[]> {
 
     private long addLocation(String locationSetting,String cityName,double lat,double lon) {
 
-        Log.v(LOG_TAG,"Inserting" + cityName + "with coord: "+ lat + ", "+ lon);
+        Log.v(LOG_TAG,"Inserting " + cityName + " with coord: "+ lat + ", "+ lon);
 
 
         ContentResolver resolver = mContext.getContentResolver();
